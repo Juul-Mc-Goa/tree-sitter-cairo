@@ -13,6 +13,7 @@ Type `cargo run > ../grammar.js` while in the directory `cairo-syntax-parser/`.
 2. There is also a lexer [there](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/lexer.rs),
 3. And more files [related to operator precedences](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/operators.rs
 ) in the same project.
+
  As Cairo is defined with some Rust code, the idea is to programmatically parse some Rust using tree-sitter, in order to output a working `grammar.js` for Cairo. 
  
  ### Parsing `lexer.rs`
@@ -24,3 +25,6 @@ Type `cargo run > ../grammar.js` while in the directory `cairo-syntax-parser/`.
  
  This is done by `cairo_syntax_parser/cairo_spec_parser.rs`. There is first a preprocessing phase to handle `add_option` method calls, and to remove structs that would match the empty string.
  Then the grammar is generated with a call to `iterate_nodes_aggregator`, which uses the two hashmaps from before.
+
+### Parsing `operators.rs`
+TODO
