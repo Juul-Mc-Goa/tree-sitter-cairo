@@ -1,0 +1,3228 @@
+[
+  {
+    "type": "alias_clause",
+    "named": true,
+    "fields": {
+      "alias": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg",
+    "named": true,
+    "fields": {
+      "arg_clause": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arg_clause",
+            "named": true
+          }
+        ]
+      },
+      "modifiers": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "modifier_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "arg_clause_field_init_shorthand",
+          "named": true
+        },
+        {
+          "type": "arg_clause_named",
+          "named": true
+        },
+        {
+          "type": "arg_clause_unnamed",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "arg_clause_field_init_shorthand",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_field_init_shorthand",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_clause_named",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_clause_unnamed",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arg",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "arg_list_braced",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arg_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_list_bracketed",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arg_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "arg_list_parenthesized",
+    "named": true,
+    "fields": {
+      "args": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arg_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "attribute",
+    "named": true,
+    "fields": {
+      "attr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "arg_list_parenthesized",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "binary_operator",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "block_or_if",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expr_block",
+          "named": true
+        },
+        {
+          "type": "expr_if",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_clause",
+    "named": true,
+    "fields": {
+      "else_block_or_if": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "block_or_if",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expr_binary",
+          "named": true
+        },
+        {
+          "type": "expr_block",
+          "named": true
+        },
+        {
+          "type": "expr_error_propagate",
+          "named": true
+        },
+        {
+          "type": "expr_field_init_shorthand",
+          "named": true
+        },
+        {
+          "type": "expr_function_call",
+          "named": true
+        },
+        {
+          "type": "expr_if",
+          "named": true
+        },
+        {
+          "type": "expr_indexed",
+          "named": true
+        },
+        {
+          "type": "expr_inline_macro",
+          "named": true
+        },
+        {
+          "type": "expr_list_parenthesized",
+          "named": true
+        },
+        {
+          "type": "expr_loop",
+          "named": true
+        },
+        {
+          "type": "expr_match",
+          "named": true
+        },
+        {
+          "type": "expr_parenthesized",
+          "named": true
+        },
+        {
+          "type": "expr_path",
+          "named": true
+        },
+        {
+          "type": "expr_struct_ctor_call",
+          "named": true
+        },
+        {
+          "type": "expr_unary",
+          "named": true
+        },
+        {
+          "type": "terminal_literal_number",
+          "named": true
+        },
+        {
+          "type": "terminal_short_string",
+          "named": true
+        },
+        {
+          "type": "terminal_string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "expr_binary",
+    "named": true,
+    "fields": {
+      "lhs": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "binary_operator",
+            "named": true
+          }
+        ]
+      },
+      "rhs": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_block",
+    "named": true,
+    "fields": {
+      "statements": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "statement_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_clause",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_error_propagate",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_field_init_shorthand",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_function_call",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arg_list_parenthesized",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_if",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "if_block": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_block",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "else_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "expr_indexed",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "index_expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_inline_macro",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wrapped_arg_list",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "expr_list_parenthesized",
+    "named": true,
+    "fields": {
+      "expressions": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_loop",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_block",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_match",
+    "named": true,
+    "fields": {
+      "arms": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "match_arms",
+            "named": true
+          }
+        ]
+      },
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_parenthesized",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_path",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "path_segment",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "expr_struct_ctor_call",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "struct_arg_list_braced",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "expr_unary",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "unary_operator",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "function_declaration",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "signature": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "function_signature",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "function_signature",
+    "named": true,
+    "fields": {
+      "parameters": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "param_list",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "implicits_clause",
+          "named": true
+        },
+        {
+          "type": "return_type_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "function_with_body",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_block",
+            "named": true
+          }
+        ]
+      },
+      "declaration": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "function_declaration",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_arg",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_arg_named",
+          "named": true
+        },
+        {
+          "type": "generic_arg_unnamed",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_arg_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_arg",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_arg_named",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_arg_value",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_arg_unnamed",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_arg_value",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_arg_value",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "generic_arg_value_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_arg_value_expr",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_args",
+    "named": true,
+    "fields": {
+      "generic_args": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_arg_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_param",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_param_const",
+          "named": true
+        },
+        {
+          "type": "generic_param_impl_anonymous",
+          "named": true
+        },
+        {
+          "type": "generic_param_impl_named",
+          "named": true
+        },
+        {
+          "type": "generic_param_type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_param_const",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "ty": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_param_impl_anonymous",
+    "named": true,
+    "fields": {
+      "trait_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_param_impl_named",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "trait_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic_param_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_param",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_param_type",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "impl_body",
+    "named": true,
+    "fields": {
+      "items": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "impl_item_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "impl_item",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "function_with_body",
+          "named": true
+        },
+        {
+          "type": "item_constant",
+          "named": true
+        },
+        {
+          "type": "item_enum",
+          "named": true
+        },
+        {
+          "type": "item_extern_function",
+          "named": true
+        },
+        {
+          "type": "item_extern_type",
+          "named": true
+        },
+        {
+          "type": "item_impl",
+          "named": true
+        },
+        {
+          "type": "item_impl_alias",
+          "named": true
+        },
+        {
+          "type": "item_module",
+          "named": true
+        },
+        {
+          "type": "item_struct",
+          "named": true
+        },
+        {
+          "type": "item_trait",
+          "named": true
+        },
+        {
+          "type": "item_type_alias",
+          "named": true
+        },
+        {
+          "type": "item_use",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "impl_item_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "impl_item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "implicits_clause",
+    "named": true,
+    "fields": {
+      "implicits": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "implicits_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "implicits_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expr_path",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "function_with_body",
+          "named": true
+        },
+        {
+          "type": "item_constant",
+          "named": true
+        },
+        {
+          "type": "item_enum",
+          "named": true
+        },
+        {
+          "type": "item_extern_function",
+          "named": true
+        },
+        {
+          "type": "item_extern_type",
+          "named": true
+        },
+        {
+          "type": "item_impl",
+          "named": true
+        },
+        {
+          "type": "item_impl_alias",
+          "named": true
+        },
+        {
+          "type": "item_inline_macro",
+          "named": true
+        },
+        {
+          "type": "item_module",
+          "named": true
+        },
+        {
+          "type": "item_struct",
+          "named": true
+        },
+        {
+          "type": "item_trait",
+          "named": true
+        },
+        {
+          "type": "item_type_alias",
+          "named": true
+        },
+        {
+          "type": "item_use",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_constant",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "type_clause": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_clause",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "item_enum",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "variants": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "variant_list",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_extern_function",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "declaration": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "function_declaration",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "item_extern_type",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_impl",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "maybe_impl_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "trait_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_impl_alias",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "impl_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_inline_macro",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wrapped_arg_list",
+            "named": true
+          }
+        ]
+      },
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "item_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_module",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "maybe_module_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "item_struct",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "members": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "member_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_trait",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "maybe_trait_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_type_alias",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "ty": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "wrapped_generic_param_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_use",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "use_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "use_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "match_arm",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "match_arms",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "match_arm",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "maybe_impl_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "impl_body",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "maybe_module_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "module_body",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "maybe_trait_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "trait_body",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "maybe_trait_function_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expr_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "member",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "type_clause": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_clause",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "member_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "member",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "modifier",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "modifier_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "module_body",
+    "named": true,
+    "fields": {
+      "items": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "item_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "param",
+    "named": true,
+    "fields": {
+      "modifiers": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "modifier_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "type_clause": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_clause",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "param_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "param",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "path_segment",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "path_segment_simple",
+          "named": true
+        },
+        {
+          "type": "path_segment_with_generic_args",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "path_segment_simple",
+    "named": true,
+    "fields": {
+      "ident": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "path_segment_with_generic_args",
+    "named": true,
+    "fields": {
+      "generic_args": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_args",
+            "named": true
+          }
+        ]
+      },
+      "ident": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expr_path",
+          "named": true
+        },
+        {
+          "type": "pattern_enum",
+          "named": true
+        },
+        {
+          "type": "pattern_identifier",
+          "named": true
+        },
+        {
+          "type": "pattern_struct",
+          "named": true
+        },
+        {
+          "type": "pattern_tuple",
+          "named": true
+        },
+        {
+          "type": "terminal_literal_number",
+          "named": true
+        },
+        {
+          "type": "terminal_short_string",
+          "named": true
+        },
+        {
+          "type": "terminal_string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_enum",
+    "named": true,
+    "fields": {
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "pattern_enum_inner_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_enum_inner_pattern",
+    "named": true,
+    "fields": {
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "pattern_identifier",
+    "named": true,
+    "fields": {
+      "modifiers": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "modifier_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "pattern_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_struct",
+    "named": true,
+    "fields": {
+      "params": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern_struct_param_list",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "pattern_struct_param",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "pattern_identifier",
+          "named": true
+        },
+        {
+          "type": "pattern_struct_param_with_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_struct_param_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "pattern_struct_param",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_struct_param_with_expr",
+    "named": true,
+    "fields": {
+      "modifiers": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "modifier_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      },
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "pattern_tuple",
+    "named": true,
+    "fields": {
+      "patterns": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "return_type_clause",
+    "named": true,
+    "fields": {
+      "ty": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "statement_break",
+          "named": true
+        },
+        {
+          "type": "statement_continue",
+          "named": true
+        },
+        {
+          "type": "statement_expr",
+          "named": true
+        },
+        {
+          "type": "statement_let",
+          "named": true
+        },
+        {
+          "type": "statement_return",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "statement_break",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expr_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "statement_continue",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "statement_expr",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "statement_let",
+    "named": true,
+    "fields": {
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern",
+            "named": true
+          }
+        ]
+      },
+      "rhs": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "type_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "statement_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "statement_return",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expr_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct_arg",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "struct_arg_single",
+          "named": true
+        },
+        {
+          "type": "struct_arg_tail",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct_arg_expr",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "struct_arg_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "struct_arg",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct_arg_list_braced",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "struct_arg_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "struct_arg_single",
+    "named": true,
+    "fields": {
+      "identifier": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "struct_arg_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct_arg_tail",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "terminal_short_string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "type_suffix",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "terminal_string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "type_suffix",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "trait_body",
+    "named": true,
+    "fields": {
+      "items": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "trait_item_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "trait_item",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "trait_item_function",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "trait_item_function",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "maybe_trait_function_body",
+            "named": true
+          }
+        ]
+      },
+      "declaration": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "function_declaration",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "trait_item_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "trait_item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "trivium",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "token_newline",
+          "named": true
+        },
+        {
+          "type": "token_single_line_comment",
+          "named": true
+        },
+        {
+          "type": "token_whitespace",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_clause",
+    "named": true,
+    "fields": {
+      "ty": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_suffix",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "unary_operator",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "use_path",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "use_path_leaf",
+          "named": true
+        },
+        {
+          "type": "use_path_multi",
+          "named": true
+        },
+        {
+          "type": "use_path_single",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "use_path_leaf",
+    "named": true,
+    "fields": {
+      "ident": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "path_segment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "alias_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "use_path_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "use_path",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "use_path_multi",
+    "named": true,
+    "fields": {
+      "use_paths": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "use_path_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "use_path_single",
+    "named": true,
+    "fields": {
+      "ident": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "path_segment",
+            "named": true
+          }
+        ]
+      },
+      "use_path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "use_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "variant",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "terminal_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "type_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "variant_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "variant",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "wrapped_arg_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "arg_list_braced",
+          "named": true
+        },
+        {
+          "type": "arg_list_bracketed",
+          "named": true
+        },
+        {
+          "type": "arg_list_parenthesized",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "wrapped_generic_param_list",
+    "named": true,
+    "fields": {
+      "generic_params": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_param_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "!",
+    "named": false
+  },
+  {
+    "type": "!=",
+    "named": false
+  },
+  {
+    "type": "\"",
+    "named": false
+  },
+  {
+    "type": "#",
+    "named": false
+  },
+  {
+    "type": "%",
+    "named": false
+  },
+  {
+    "type": "%=",
+    "named": false
+  },
+  {
+    "type": "&",
+    "named": false
+  },
+  {
+    "type": "&&",
+    "named": false
+  },
+  {
+    "type": "'",
+    "named": false
+  },
+  {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": "*",
+    "named": false
+  },
+  {
+    "type": "*=",
+    "named": false
+  },
+  {
+    "type": "+",
+    "named": false
+  },
+  {
+    "type": "+=",
+    "named": false
+  },
+  {
+    "type": ",",
+    "named": false
+  },
+  {
+    "type": "-",
+    "named": false
+  },
+  {
+    "type": "-=",
+    "named": false
+  },
+  {
+    "type": "->",
+    "named": false
+  },
+  {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": "..",
+    "named": false
+  },
+  {
+    "type": "/",
+    "named": false
+  },
+  {
+    "type": "/=",
+    "named": false
+  },
+  {
+    "type": ":",
+    "named": false
+  },
+  {
+    "type": "::",
+    "named": false
+  },
+  {
+    "type": ";",
+    "named": false
+  },
+  {
+    "type": "<",
+    "named": false
+  },
+  {
+    "type": "<=",
+    "named": false
+  },
+  {
+    "type": "=",
+    "named": false
+  },
+  {
+    "type": "==",
+    "named": false
+  },
+  {
+    "type": "=>",
+    "named": false
+  },
+  {
+    "type": ">",
+    "named": false
+  },
+  {
+    "type": ">=",
+    "named": false
+  },
+  {
+    "type": "?",
+    "named": false
+  },
+  {
+    "type": "@",
+    "named": false
+  },
+  {
+    "type": "[",
+    "named": false
+  },
+  {
+    "type": "]",
+    "named": false
+  },
+  {
+    "type": "^",
+    "named": false
+  },
+  {
+    "type": "_",
+    "named": false
+  },
+  {
+    "type": "as",
+    "named": false
+  },
+  {
+    "type": "break",
+    "named": false
+  },
+  {
+    "type": "const",
+    "named": false
+  },
+  {
+    "type": "continue",
+    "named": false
+  },
+  {
+    "type": "else",
+    "named": false
+  },
+  {
+    "type": "enum",
+    "named": false
+  },
+  {
+    "type": "escape_sequence",
+    "named": true
+  },
+  {
+    "type": "extern",
+    "named": false
+  },
+  {
+    "type": "false",
+    "named": false
+  },
+  {
+    "type": "fn",
+    "named": false
+  },
+  {
+    "type": "if",
+    "named": false
+  },
+  {
+    "type": "impl",
+    "named": false
+  },
+  {
+    "type": "implicits",
+    "named": false
+  },
+  {
+    "type": "let",
+    "named": false
+  },
+  {
+    "type": "loop",
+    "named": false
+  },
+  {
+    "type": "match",
+    "named": false
+  },
+  {
+    "type": "mod",
+    "named": false
+  },
+  {
+    "type": "mut",
+    "named": false
+  },
+  {
+    "type": "nopanic",
+    "named": false
+  },
+  {
+    "type": "of",
+    "named": false
+  },
+  {
+    "type": "ref",
+    "named": false
+  },
+  {
+    "type": "return",
+    "named": false
+  },
+  {
+    "type": "struct",
+    "named": false
+  },
+  {
+    "type": "terminal_identifier",
+    "named": true
+  },
+  {
+    "type": "terminal_literal_number",
+    "named": true
+  },
+  {
+    "type": "token_newline",
+    "named": true
+  },
+  {
+    "type": "token_single_line_comment",
+    "named": true
+  },
+  {
+    "type": "token_whitespace",
+    "named": true
+  },
+  {
+    "type": "trait",
+    "named": false
+  },
+  {
+    "type": "true",
+    "named": false
+  },
+  {
+    "type": "type",
+    "named": false
+  },
+  {
+    "type": "use",
+    "named": false
+  },
+  {
+    "type": "{",
+    "named": false
+  },
+  {
+    "type": "|",
+    "named": false
+  },
+  {
+    "type": "||",
+    "named": false
+  },
+  {
+    "type": "}",
+    "named": false
+  },
+  {
+    "type": "~",
+    "named": false
+  }
+]
