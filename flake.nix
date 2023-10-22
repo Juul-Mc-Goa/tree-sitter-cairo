@@ -14,7 +14,13 @@
         pkgs = import nixpkgs { inherit system overlays; };
       in with pkgs; {
         devShells.default = mkShell {
-          buildInputs = [ eza pkg-config rust-bin.nightly.latest.default ];
+          buildInputs = [
+            eza
+            nodejs_20
+            pkg-config
+            rust-bin.nightly.latest.default
+            tree-sitter
+          ];
 
           shellHook = ''
             alias ls=eza

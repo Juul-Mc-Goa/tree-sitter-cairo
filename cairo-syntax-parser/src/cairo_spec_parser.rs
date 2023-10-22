@@ -69,14 +69,11 @@ impl<'a> CairoSpecParser<'a> {
     /// This function takes a tree of method calls, and call `f` for each one of them.
     /// `g: G` is a function called at the leaf of the tree, taking all produced `String`s
     /// and returning a single one.
-    fn iterate_method_calls<F>(&mut self, n: Node<'a>, mut f: F) -> String
-    where
-        F: FnMut(Node<'a>, Vec<(Node<'a>, Node<'a>)>) -> String,
-    {
+    fn iterate_method_calls(&mut self, n: Node<'a>) -> (Node<'a>, Vec<(Node<'a>, Node<'a>)>) {
         self.cursor.reset(n);
         let mut has_children = true;
         let mut result: Vec<(Node, Node)> = Vec::new();
-        let mut end_result = String::from("");
+        let mut leaf: Node = n;
         while has_children {
             let node = self.cursor.node();
             let node_args = node.child_by_field_name("arguments").unwrap();
@@ -84,8 +81,6 @@ impl<'a> CairoSpecParser<'a> {
             match node_method.child_by_field_name("field") {
                 Some(_) => {
                     result.push((node_method, node_args));
-                    // let new_result = f(node_method, node_args);
-                    // result.push(new_result);
                     self.cursor.goto_first_child();
                     self.cursor.goto_first_child();
                     has_children = self
@@ -95,13 +90,13 @@ impl<'a> CairoSpecParser<'a> {
                         .is_some();
                 }
                 None => {
-                    let rev_result = result.into_iter().rev().collect();
-                    end_result = f(node_args, rev_result);
+                    leaf = node_args;
                     break;
                 }
             }
         }
-        end_result
+        // revert result to obtain the correct ordering of method calls
+        (leaf, result.into_iter().rev().collect())
     }
 
     fn add_option_to_hashmap(&mut self, camel_node_str: String) {
@@ -200,81 +195,73 @@ impl<'a> CairoSpecParser<'a> {
     /// create a tree-sitter `seq(...)` from an `add_struct` method call
     fn add_struct(&mut self, n: Node<'a>) -> String {
         let mut self_clone = self.clone();
-        let f = |inner_node: Node<'a>, methods_args: Vec<(Node<'a>, Node<'a>)>| -> String {
-            let result: Vec<String> = methods_args
-                .into_iter()
-                .map(|(_method, arg)| -> String {
-                    let args_vec: Vec<String> = self_clone.iterate_arguments(arg);
-                    let field_name = camel_to_snake(&args_vec[0]);
-                    let field_value = camel_to_snake(&args_vec[1]);
-                    self_clone.kind_to_str_or(
-                        format!("field('{field_name}', $.{field_value})"),
-                        args_vec[1].clone(),
-                    )
-                })
-                .collect::<Vec<String>>();
-
-            let inner_args = self_clone.iterate_arguments(inner_node);
-            let struct_name = if inner_args.len() == 0 {
-                String::from("")
-            } else {
-                camel_to_snake(&inner_args[0])
-            };
-            if result.len() == 0 {
-                String::new()
-            } else {
-                format!(
-                    "{struct_name}: $ => seq(\n{}\n),\n",
-                    result
-                        .into_iter()
-                        .map(|s| format!("    {s},"))
-                        .collect::<Vec<String>>()
-                        .join("\n"),
-                )
-            }
-        };
-
         let args_node = _get_args_node(n).child(1).unwrap();
-        self.iterate_method_calls(args_node, f)
+        let (inner_node, methods_args) = self.iterate_method_calls(args_node);
+        let result: Vec<String> = methods_args
+            .into_iter()
+            .map(|(_method, arg)| -> String {
+                let args_vec: Vec<String> = self_clone.iterate_arguments(arg);
+                let field_name = camel_to_snake(&args_vec[0]);
+                let field_value = camel_to_snake(&args_vec[1]);
+                self_clone.kind_to_str_or(
+                    format!("field('{field_name}', $.{field_value})"),
+                    args_vec[1].clone(),
+                )
+            })
+            .collect::<Vec<String>>();
+
+        let inner_args = self_clone.iterate_arguments(inner_node);
+        let struct_name = if inner_args.len() == 0 {
+            String::from("")
+        } else {
+            camel_to_snake(&inner_args[0])
+        };
+        if result.len() == 0 {
+            String::new()
+        } else {
+            format!(
+                "{struct_name}: $ => seq(\n{}\n),\n",
+                result
+                    .into_iter()
+                    .map(|s| format!("    {s},"))
+                    .collect::<Vec<String>>()
+                    .join("\n"),
+            )
+        }
     }
 
     /// create a tree-sitter choice from a `add_enum` method call
     fn add_enum(&mut self, n: Node<'a>) -> String {
         let mut self_clone = self.clone();
-        let f = |inner_node: Node<'a>, methods_args: Vec<(Node<'a>, Node<'a>)>| -> String {
-            let enum_camel_case = self_clone.iterate_arguments(inner_node)[0].clone();
-            let enum_name = camel_to_snake(&enum_camel_case);
-            let result: Vec<String> = methods_args
-                .into_iter()
-                .map(|(method, arg)| -> String {
-                    let method_name = method.child_by_field_name("field").unwrap();
-                    let args: Vec<String> = self_clone.iterate_arguments(arg);
-                    match str_from_node(method_name, self_clone.source_code) {
-                        "node" | "missing" => self_clone.kind_to_str_or(
-                            format!("$.{enum_name}_{}", camel_to_snake(&args[0])),
-                            enum_camel_case.clone() + &args[0],
-                        ),
-                        "node_with_explicit_kind" => self_clone.kind_to_str_or(
-                            format!("$.{}", camel_to_snake(&args[1])),
-                            args[1].clone(),
-                        ),
-                        &_ => String::from(""),
-                    }
-                })
-                .collect::<Vec<String>>();
-            format!(
-                "{enum_name}: $ => choice(\n{}\n),\n",
-                result
-                    .into_iter()
-                    .filter(|s| !s.is_empty())
-                    .map(|s| format!("    {s},"))
-                    .collect::<Vec<String>>()
-                    .join("\n"),
-            )
-        };
-
         let args_node = _get_args_node(n).child(1).unwrap();
-        self.iterate_method_calls(args_node, f)
+        let (inner_node, methods_args) = self.iterate_method_calls(args_node);
+        let enum_camel_case = self_clone.iterate_arguments(inner_node)[0].clone();
+        let enum_name = camel_to_snake(&enum_camel_case);
+        let result: Vec<String> = methods_args
+            .into_iter()
+            .map(|(method, arg)| -> String {
+                let method_name = method.child_by_field_name("field").unwrap();
+                let args: Vec<String> = self_clone.iterate_arguments(arg);
+                match str_from_node(method_name, self_clone.source_code) {
+                    "node" | "missing" => self_clone.kind_to_str_or(
+                        format!("$.{enum_name}_{}", camel_to_snake(&args[0])),
+                        enum_camel_case.clone() + &args[0],
+                    ),
+                    "node_with_explicit_kind" => self_clone
+                        .kind_to_str_or(format!("$.{}", camel_to_snake(&args[1])), args[1].clone()),
+                    &_ => String::from(""),
+                }
+            })
+            .collect::<Vec<String>>();
+        format!(
+            "{enum_name}: $ => choice(\n{}\n),\n",
+            result
+                .into_iter()
+                .filter(|s| !s.is_empty())
+                .map(|s| format!("    {s},"))
+                .collect::<Vec<String>>()
+                .join("\n"),
+        )
     }
 
     /// Rule for matching list of elements. `repeat1` is used to ensure the rule
@@ -317,36 +304,34 @@ impl<'a> CairoSpecParser<'a> {
 
     fn iterate_nodes_aggregator(&mut self, nodes_aggregator: Node<'a>) -> String {
         let mut self_clone = self.clone();
-        let f = |_inner_node: Node<'a>, methods_args: Vec<(Node<'a>, Node<'a>)>| -> String {
-            let result: Vec<String> = methods_args
-                .into_iter()
-                .map(|(method, _arg)| -> String {
-                    let method_name = method.child_by_field_name("field").unwrap();
-                    match str_from_node(method_name, self_clone.source_code) {
-                        "add_list" => self_clone.add_list(method_name),
-                        "add_separated_list" => self_clone.add_separated_list(method_name),
-                        "add_enum" => self_clone.add_enum(method_name),
-                        "add_struct" => self_clone.add_struct(method_name),
-                        "add_option" => self_clone.add_option(method_name),
-                        "add_token_and_terminal" => self_clone.add_token_terminal(method_name),
-                        "add_keyword_token_and_terminal" => {
-                            self_clone.add_kw_token_terminal(method_name)
-                        }
-                        "add_token" => self_clone.add_token(method_name),
-                        &_ => String::from("unknown"),
+        let (_, methods_args) = self.iterate_method_calls(nodes_aggregator);
+        let result: Vec<String> = methods_args
+            .into_iter()
+            .map(|(method, _arg)| -> String {
+                let method_name = method.child_by_field_name("field").unwrap();
+                match str_from_node(method_name, self_clone.source_code) {
+                    "add_list" => self_clone.add_list(method_name),
+                    "add_separated_list" => self_clone.add_separated_list(method_name),
+                    "add_enum" => self_clone.add_enum(method_name),
+                    "add_struct" => self_clone.add_struct(method_name),
+                    "add_option" => self_clone.add_option(method_name),
+                    "add_token_and_terminal" => self_clone.add_token_terminal(method_name),
+                    "add_keyword_token_and_terminal" => {
+                        self_clone.add_kw_token_terminal(method_name)
                     }
-                })
-                .collect::<Vec<String>>();
-            let mut new_result = self_clone
-                .token_to_str
-                .get("")
-                .expect("no key \"\" in token_to_str")
-                .clone();
-            let filter_empty: Vec<String> = result.into_iter().filter(|s| !s.is_empty()).collect();
-            new_result.push_str(&filter_empty.join("\n"));
-            new_result.into()
-        };
-        self.iterate_method_calls(nodes_aggregator, f)
+                    "add_token" => self_clone.add_token(method_name),
+                    &_ => String::from("unknown"),
+                }
+            })
+            .collect::<Vec<String>>();
+        let mut new_result = self_clone
+            .token_to_str
+            .get("")
+            .expect("no key \"\" in token_to_str")
+            .clone();
+        let filter_empty: Vec<String> = result.into_iter().filter(|s| !s.is_empty()).collect();
+        new_result.push_str(&filter_empty.join("\n"));
+        new_result.into()
     }
 }
 
