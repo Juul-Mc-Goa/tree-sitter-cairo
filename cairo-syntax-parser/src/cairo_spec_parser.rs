@@ -111,34 +111,6 @@ impl<'a> CairoSpecParser<'a> {
             .insert(option_name, format!("optional({option_str})"));
     }
 
-    fn iterate_options(&mut self, n: Node<'a>) {
-        self.cursor.reset(n);
-        let mut has_children = true;
-        while has_children {
-            let node = self.cursor.node();
-            let node_args = node.child_by_field_name("arguments").unwrap();
-            let node_method = node.child_by_field_name("function").unwrap();
-            match node_method.child_by_field_name("field") {
-                Some(field) => {
-                    if self.str_from_node(field) == "add_option" {
-                        let option_to_add = &self.clone().iterate_arguments(node_args)[0];
-                        self.add_option_to_hashmap(String::from(option_to_add));
-                    }
-                    self.cursor.goto_first_child();
-                    self.cursor.goto_first_child();
-                    has_children = self
-                        .cursor
-                        .node()
-                        .child_by_field_name("arguments")
-                        .is_some();
-                }
-                None => {
-                    break;
-                }
-            }
-        }
-    }
-
     /// It is needed to preprocess the file in order to handle `add_option` calls and
     /// empty `add_struct` calls (like `add_struct(StructBuilder::new("ImplItemMissing"))`)
     fn preprocess_file(&mut self, n: Node<'a>) {
