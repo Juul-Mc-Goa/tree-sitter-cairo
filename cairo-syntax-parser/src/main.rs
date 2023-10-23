@@ -21,12 +21,12 @@ fn main() {
     let part_grammar = cairo_spec_parser::parse_cairo_spec(AST_CODEGEN_FILE, hashmaps);
     println!(
         "module.exports = grammar({{
-    name: 'cairo',
+        name: 'cairo',
 
-    rules: {{
-{}
-    }}
-}});",
+        rules: {{
+    {}
+        }}
+    }});",
         part_grammar
     );
 }

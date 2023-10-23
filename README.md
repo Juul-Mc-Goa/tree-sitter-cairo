@@ -6,6 +6,14 @@ A try at parsing Cairo's code (written in Rust) with tree-sitter, to produce a `
 ## How to use
 Type `cargo run > ../grammar.js` while in the directory `cairo-syntax-parser/`. 
 
+``` sh
+cd cairo-syntax-parser/
+cargo run > ../grammar.js
+cd ../
+tree-sitter generate
+```
+
+
 ## Overview of the project's logic
 
 1. The whole AST for Cairo is defined [here](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-syntax-codegen/src/cairo_spec.rs).

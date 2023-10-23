@@ -232,53 +232,38 @@ terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
     pub fn match_terminal_block(mut self, pattern: Node, block: Node<'a>) -> Self {
         let base_pattern = self.str_from_node(pattern).trim_matches('\'');
-        let mut new_cursor = self.cursor.clone();
-        let mut other_cursor = self.cursor.clone();
-        for child in block.children(&mut new_cursor) {
-            let child_kind = child.kind();
-            if child_kind == "{" || child_kind == "}" {
-                continue;
-            }
-            let grand_child = child.child(0).unwrap();
-            if grand_child.kind() == "match_expression" {
-                let match_body = grand_child
-                    .child_by_field_name("body")
-                    .expect("match expression doesn't have a body");
-                for match_arm in match_body.children(&mut other_cursor) {
-                    let match_arm_kind = match_arm.kind();
-                    if match_arm_kind == "{" || match_arm_kind == "}" {
-                        continue;
-                    }
-                    let value = {
-                        let inner_pattern = match_arm
-                            .child_by_field_name("pattern")
-                            .unwrap()
-                            .child(0)
-                            .unwrap();
-                        match inner_pattern.kind() {
-                            "tuple_struct_pattern" => {
-                                let inner_char = self
-                                    .str_from_node(inner_pattern.child(2).unwrap())
-                                    .trim_matches('\'');
-                                format!("'{base_pattern}{inner_char}'")
-                            }
-                            "_" => format!("'{base_pattern}'"),
-                            &_ => String::from(""),
-                        }
-                    };
-                    let key = {
-                        let inner_match_value = match_arm.child_by_field_name("value").unwrap();
-                        match inner_match_value.kind() {
-                            "call_expression" => self.iterate_arguments(
-                                inner_match_value.child_by_field_name("arguments").unwrap(),
-                            )[0]
-                            .clone(),
-                            &_ => self.str_from_node(inner_match_value).into(),
-                        }
-                    };
-                    let _ = self.token_to_str.insert(key, value);
+        let pattern_argument_query = "(match_expression
+        body: (match_block
+                (match_arm
+                  pattern: (match_pattern) @inner_pattern
+                  value: [
+                    (scoped_identifier) @token_kind
+                    (call_expression
+                      function: (field_expression)
+                      arguments: (arguments (scoped_identifier) @token_kind))
+                  ])))";
+        let query = Query::new(self.language_var, pattern_argument_query).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        let query_matches = query_cursor.matches(&query, block, self.source_code);
+        for m in query_matches {
+            let (mut inner_pattern, token_kind) = (m.captures[0].node, m.captures[1].node);
+            inner_pattern = inner_pattern.child(0).unwrap();
+            println!("{}", inner_pattern.kind());
+            let value: String;
+            match inner_pattern.kind() {
+                "tuple_struct_pattern" => {
+                    let inner_char = self
+                        .str_from_node(inner_pattern.child(2).unwrap())
+                        .trim_matches('\'');
+                    value = format!("'{base_pattern}{inner_char}'");
                 }
+                "_" => {
+                    value = format!("'{base_pattern}'");
+                }
+                &_ => value = String::new(),
             }
+            let key: String = self.str_from_node(token_kind).into();
+            let _ = self.token_to_str.insert(key, value);
         }
         self
     }
