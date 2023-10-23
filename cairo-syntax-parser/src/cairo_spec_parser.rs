@@ -137,9 +137,9 @@ impl<'a> CairoSpecParser<'a> {
                                 .map(|(f, a)| (f.map(|f1| f1.kind()), a));
                             match kind_arguments {
                                 Some((Some("scoped_identifier"), Some(arguments))) => {
-                                    // iterate_arguments modifies the cursor so we clone self
-                                    let struct_str =
-                                        self.clone().iterate_arguments(arguments)[0].clone();
+                                    let struct_str = self.iterate_arguments(arguments)[0].clone();
+                                    // iterate_arguments modifies the cursor so we need to reset the cursor
+                                    self.cursor.reset(node);
                                     self.empty_structs.insert(struct_str.into());
                                 }
                                 _ => (),

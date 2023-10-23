@@ -177,7 +177,6 @@ terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
             let better_node = syntax_kind.child_by_field_name("name").unwrap();
             let key_to_insert: String = self.str_from_node(better_node).into();
             let value_to_insert: String = self.str_from_node(token_kind).into();
-            // println!("{key_to_insert} -> {value_to_insert}");
             self.kind_to_token.insert(key_to_insert, value_to_insert);
         }
         self
@@ -212,7 +211,6 @@ terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
                 value_to_insert = value_to_insert.trim_matches('"').into();
                 value_to_insert = format!("'{value_to_insert}'");
             }
-            // println!("{key_to_insert} -> {value_to_insert}");
             let _ = self.token_to_str.insert(key_to_insert, value_to_insert);
         }
         self
@@ -248,7 +246,6 @@ terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
         for m in query_matches {
             let (mut inner_pattern, token_kind) = (m.captures[0].node, m.captures[1].node);
             inner_pattern = inner_pattern.child(0).unwrap();
-            println!("{}", inner_pattern.kind());
             let value: String;
             match inner_pattern.kind() {
                 "tuple_struct_pattern" => {
