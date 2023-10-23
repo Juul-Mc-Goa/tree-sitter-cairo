@@ -4,7 +4,14 @@ A try at parsing Cairo's code (written in Rust) with tree-sitter, to produce a `
 **WARNING: This project is not working yet, due to some ambiguities in the grammar file.**
 
 ## How to use
-Type `cargo run > ../grammar.js` while in the directory `cairo-syntax-parser/`. 
+Make sure you have `tree-sitter, nodejs` installed.
+``` sh
+cd cairo-syntax-parser/
+cargo run > ../grammar.js
+cd ../
+tree-sitter generate
+```
+
 
 ``` sh
 cd cairo-syntax-parser/
