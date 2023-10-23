@@ -1,5 +1,5 @@
 # tree-sitter-cairo
-A try at parsing Cairo's code (written in Rust) with tree-sitter, to produce a `grammar.js` for Cairo.
+An attempt at parsing Cairo's code (written in Rust) with tree-sitter, to produce a `grammar.js` for Cairo.
 
 **WARNING: This project is not working yet, due to some ambiguities in the grammar file.**
 
@@ -18,7 +18,7 @@ tree-sitter generate
 1. The whole AST for Cairo is defined [here](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-syntax-codegen/src/cairo_spec.rs).
 
 2. There is also a lexer [there](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/lexer.rs),
-3. And more files [related to operator precedences](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/operators.rs
+3. And more files [related to operators precedence](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/operators.rs
 ) in the same project.
 
  As Cairo is defined with some Rust code, the idea is to programmatically parse some Rust using tree-sitter, in order to output a working `grammar.js` for Cairo. 
