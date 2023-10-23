@@ -1,9 +1,18 @@
 {
   "name": "cairo",
   "rules": {
-    "source_file": {
-      "type": "SYMBOL",
-      "name": "item_list"
+    "source_code": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "items",
+          "content": {
+            "type": "SYMBOL",
+            "name": "item_list"
+          }
+        }
+      ]
     },
     "type_suffix": {
       "type": "PATTERN",
@@ -3315,19 +3324,6 @@
           "content": {
             "type": "SYMBOL",
             "name": "expr_path"
-          }
-        }
-      ]
-    },
-    "syntax_file": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "FIELD",
-          "name": "items",
-          "content": {
-            "type": "SYMBOL",
-            "name": "item_list"
           }
         }
       ]

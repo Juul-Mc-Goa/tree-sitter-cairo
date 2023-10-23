@@ -1,25 +1,24 @@
+use crate::parser_utils::*;
+use crate::LEADING_WHITESPACE;
 use std::{collections::HashMap, fs, str};
 use tree_sitter::{Node, Parser, Query, QueryCursor, TreeCursor};
 
 const TYPE_SUFFIX: &str = "type_suffix: _ => /_[0-9a-zA-Z]+/,\n";
 const ESCAPE_SEQUENCE: &str = "escape_sequence: _ => /\\\\./,\n";
-const TOKEN_SINGLE_LINE_COMMENT: &str = "token_single_line_comment: _ => /\\/\\/.*$/,\n";
+const TOKEN_SINGLE_LINE_COMMENT: &str = "token_single_line_comment: _ => /\\/\\/.*/,\n";
 const TOKEN_NEWLINE: &str = "token_newline: _ => /\\n/,\n";
 const TOKEN_WHITESPACE: &str = "token_whitespace: _ => /[ \\r\\t]/,\n";
 // const TOKEN_SKIPPED: &str = "token_skipped: _ => /$^/,\n";
 // const TERMINAL_EOF: &str = "terminal_end_of_file: _ => /\\z/,\n";
 
 fn build_initial_value() -> String {
-    let lines = vec![
+    join_lines_ref(vec![
         TYPE_SUFFIX,
         ESCAPE_SEQUENCE,
         TOKEN_SINGLE_LINE_COMMENT,
         TOKEN_NEWLINE,
         TOKEN_WHITESPACE,
-        // TOKEN_SKIPPED,
-        // TERMINAL_EOF,
-    ];
-    lines.join("\n")
+    ])
 }
 
 #[derive(Clone)]
@@ -80,43 +79,49 @@ impl<'a> LexerFileParser<'a> {
 
     /// this one is copy-pasted from rust's grammar.js
     pub fn take_token_literal_number(self) -> Self {
-        let to_push = "
-terminal_literal_number: $ => token(seq(
-    choice(
-      /[0-9][0-9_]*/,
-      /0x[0-9a-fA-F_]+/,
-      /0b[01_]+/,
-      /0o[0-7_]+/,
-    ),
-    optional(/_[0-9a-zA-Z]+/),
-)),
-";
+        let to_push = join_lines_ref(vec![
+            "",
+            "terminal_literal_number: $ => token(seq(",
+            "    choice(",
+            "      /[0-9][0-9_]*/,",
+            "      /0x[0-9a-fA-F_]+/,",
+            "      /0b[01_]+/,",
+            "      /0o[0-7_]+/,",
+            "    ),",
+            "    optional(/_[0-9a-zA-Z]+/),",
+            ")),",
+            "",
+        ]);
         self.token_to_str_push_value("".into(), to_push.into())
     }
 
     /// hand-made premium tree-sitter rule
     pub fn take_token_string(self) -> Self {
-        let to_push = "
-terminal_string: $ => seq(
-    '\"',
-    repeat(choice($.escape_sequence, /[^\"]/)),
-    '\"',
-    optional($.type_suffix),
-),
-";
+        let to_push = join_lines_ref(vec![
+            "",
+            "terminal_string: $ => seq(",
+            "    '\"',",
+            "    repeat(choice($.escape_sequence, /[^\"]/)),",
+            "    '\"',",
+            "    optional($.type_suffix),",
+            "),",
+            "",
+        ]);
         self.token_to_str_push_value("".into(), to_push.into())
     }
 
     /// hand-made premium tree-sitter rule
     pub fn take_token_short_string(self) -> Self {
-        let to_push = "
-terminal_short_string: $ => seq(
-    '\\\'',
-    repeat(choice($.escape_sequence, /[^\']/)),
-    '\\\'',
-    optional($.type_suffix),
-),
-";
+        let to_push = join_lines_ref(vec![
+            "",
+            "terminal_short_string: $ => seq(",
+            "    '\\\'',",
+            "    repeat(choice($.escape_sequence, /[^\']/)),",
+            "    '\\\'',",
+            "    optional($.type_suffix),",
+            "),",
+            "",
+        ]);
         self.token_to_str_push_value("".into(), to_push.into())
     }
 
@@ -147,9 +152,8 @@ terminal_short_string: $ => seq(
     }
 
     pub fn take_token_identifier(self) -> Self {
-        let to_push = "
-terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
-";
+        let to_push =
+            format!("\n{LEADING_WHITESPACE}terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,\n");
         self.token_to_str_push_value("".into(), to_push.into())
     }
 
@@ -230,16 +234,17 @@ terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
     pub fn match_terminal_block(mut self, pattern: Node, block: Node<'a>) -> Self {
         let base_pattern = self.str_from_node(pattern).trim_matches('\'');
-        let pattern_argument_query = "(match_expression
-        body: (match_block
-                (match_arm
-                  pattern: (match_pattern) @inner_pattern
-                  value: [
-                    (scoped_identifier) @token_kind
-                    (call_expression
-                      function: (field_expression)
-                      arguments: (arguments (scoped_identifier) @token_kind))
-                  ])))";
+        let pattern_argument_query = "
+        (match_expression
+            body: (match_block
+                      (match_arm
+                          pattern: (match_pattern) @inner_pattern
+                          value: [
+                              (scoped_identifier) @token_kind
+                              (call_expression
+                              function: (field_expression)
+                              arguments: (arguments (scoped_identifier) @token_kind))
+                          ])))";
         let query = Query::new(self.language_var, pattern_argument_query).unwrap();
         let mut query_cursor = QueryCursor::new();
         let query_matches = query_cursor.matches(&query, block, self.source_code);

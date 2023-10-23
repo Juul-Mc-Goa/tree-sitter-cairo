@@ -1,4 +1,5 @@
 use crate::parser_utils::*;
+use crate::{LEADING_WHITESPACE, ROOT_NODE};
 use std::{
     collections::{HashMap, HashSet},
     fs, str,
@@ -12,14 +13,32 @@ struct CairoSpecParser<'a> {
     kind_to_token: HashMap<String, String>,
     token_to_str: HashMap<String, String>,
     option_to_str: HashMap<String, String>,
-    empty_structs: HashSet<String>,
+    to_delete: HashSet<String>,
+    source_code_rule: String,
 }
 
 impl<'a> CairoSpecParser<'a> {
+    /// Creates a new parser.
+    fn new(
+        cursor: TreeCursor<'a>,
+        source_code: &'a [u8],
+        hashmaps: (HashMap<String, String>, HashMap<String, String>),
+        to_delete: HashSet<String>,
+    ) -> Self {
+        CairoSpecParser {
+            cursor,
+            source_code,
+            kind_to_token: hashmaps.0,
+            token_to_str: hashmaps.1,
+            option_to_str: HashMap::<String, String>::new(),
+            to_delete,
+            source_code_rule: String::new(),
+        }
+    }
     /// Checks if `kind`:
     /// i) can be mapped via `kind_to_token, token_to_str`, or
     /// ii) can be mapped via `option_to_str`, or
-    /// iii) is replaced by an empty string if it belongs to `empty_structs`.
+    /// iii) is replaced by an empty string if it belongs to `to_delete`.
     /// Otherwise returns `default_str`.
     fn kind_to_str_or(&self, default_str: String, kind: String) -> String {
         match self
@@ -36,7 +55,7 @@ impl<'a> CairoSpecParser<'a> {
             {
                 Some(other_str_ref) => other_str_ref.into(),
                 None => {
-                    if self.empty_structs.contains(&kind) {
+                    if self.to_delete.contains(&kind) {
                         String::new()
                     } else {
                         default_str
@@ -140,7 +159,7 @@ impl<'a> CairoSpecParser<'a> {
                                     let struct_str = self.iterate_arguments(arguments)[0].clone();
                                     // iterate_arguments modifies the cursor so we need to reset the cursor
                                     self.cursor.reset(node);
-                                    self.empty_structs.insert(struct_str.into());
+                                    self.to_delete.insert(struct_str.into());
                                 }
                                 _ => (),
                             }
@@ -180,23 +199,30 @@ impl<'a> CairoSpecParser<'a> {
             })
             .collect::<Vec<String>>();
 
-        let inner_args = self_clone.iterate_arguments(inner_node);
-        let struct_name = if inner_args.len() == 0 {
-            String::from("")
-        } else {
-            camel_to_snake(&inner_args[0])
-        };
         if result.len() == 0 {
             String::new()
         } else {
-            format!(
-                "{struct_name}: $ => seq(\n{}\n),\n",
-                result
-                    .into_iter()
-                    .map(|s| format!("    {s},"))
-                    .collect::<Vec<String>>()
-                    .join("\n"),
-            )
+            let inner_args = self_clone.iterate_arguments(inner_node);
+            let struct_name = if inner_args.len() == 0 {
+                String::from("")
+            } else {
+                camel_to_snake(&inner_args[0])
+            };
+            let mut end_result = result
+                .into_iter()
+                .filter(|s| !s.is_empty())
+                .map(|s| format!("    {s},"))
+                .collect::<Vec<String>>();
+            end_result.push(String::from("),"));
+            end_result.push(String::new());
+            if &inner_args[0] == ROOT_NODE {
+                end_result.insert(0, String::from("source_code: $ => seq("));
+                self.source_code_rule = join_lines(end_result);
+                String::new()
+            } else {
+                end_result.insert(0, format!("{struct_name}: $ => seq("));
+                join_lines(end_result)
+            }
         }
     }
 
@@ -223,15 +249,15 @@ impl<'a> CairoSpecParser<'a> {
                 }
             })
             .collect::<Vec<String>>();
-        format!(
-            "{enum_name}: $ => choice(\n{}\n),\n",
-            result
-                .into_iter()
-                .filter(|s| !s.is_empty())
-                .map(|s| format!("    {s},"))
-                .collect::<Vec<String>>()
-                .join("\n"),
-        )
+        let mut end_result = result
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .map(|s| format!("    {s},"))
+            .collect::<Vec<String>>();
+        end_result.insert(0, format!("{enum_name}: $ => choice("));
+        end_result.push(String::from("),"));
+        end_result.push(String::new());
+        join_lines(end_result)
     }
 
     /// Rule for matching list of elements. `repeat1` is used to ensure the rule
@@ -241,7 +267,7 @@ impl<'a> CairoSpecParser<'a> {
         let args = self.iterate_arguments(args_node);
         let list_name = camel_to_snake(&args[0]);
         let list_element = camel_to_snake(&args[1]);
-        format!("{list_name}: $ => repeat1($.{list_element}),\n")
+        format!("{LEADING_WHITESPACE}{list_name}: $ => repeat1($.{list_element}),\n")
     }
 
     fn add_separated_list(&mut self, n: Node) -> String {
@@ -252,7 +278,7 @@ impl<'a> CairoSpecParser<'a> {
         let sep = &args[2];
         let new_sep = self.kind_to_str_or(sep.clone(), sep.into());
         format!(
-            "{list_name}: $ => seq($.{list_element}, repeat(seq({new_sep}, $.{list_element}))),\n"
+            "{LEADING_WHITESPACE}{list_name}: $ => seq($.{list_element}, repeat(seq({new_sep}, $.{list_element}))),\n"
         )
     }
 
@@ -294,13 +320,22 @@ impl<'a> CairoSpecParser<'a> {
                 }
             })
             .collect::<Vec<String>>();
-        let mut new_result = self_clone
-            .token_to_str
-            .get("")
-            .expect("no key \"\" in token_to_str")
-            .clone();
-        let filter_empty: Vec<String> = result.into_iter().filter(|s| !s.is_empty()).collect();
-        new_result.push_str(&filter_empty.join("\n"));
+        let mut new_result = self_clone.source_code_rule;
+        new_result.push_str("\n");
+        new_result.push_str(
+            &self
+                .token_to_str
+                .get("")
+                .expect("no key \"\" in token_to_str")
+                .clone(),
+        );
+        new_result.push_str(
+            &result
+                .into_iter()
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<String>>()
+                .join("\n"),
+        );
         new_result.into()
     }
 }
@@ -318,6 +353,7 @@ fn _get_args_node(n: Node) -> Node {
 pub fn parse_cairo_spec(
     file: &str,
     hashmaps: (HashMap<String, String>, HashMap<String, String>),
+    to_delete: HashSet<String>,
 ) -> String {
     // first initialize the tree-sitter objects
     let mut parser = Parser::new();
@@ -347,14 +383,7 @@ pub fn parse_cairo_spec(
     let captures = query_matches.next().unwrap().captures;
     let root_call_expr = captures[0].node;
 
-    let mut cairo_parser = CairoSpecParser {
-        cursor,
-        source_code: source_code_bytes,
-        kind_to_token: hashmaps.0,
-        token_to_str: hashmaps.1,
-        option_to_str: HashMap::<String, String>::new(),
-        empty_structs: HashSet::<String>::new(),
-    };
+    let mut cairo_parser = CairoSpecParser::new(cursor, source_code_bytes, hashmaps, to_delete);
     // first step: parse all `add_option` method calls, ignore empty `add_struct`
     cairo_parser.preprocess_file(root_call_expr.clone());
     // second step: generate `grammar.js`

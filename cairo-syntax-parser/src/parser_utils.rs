@@ -1,3 +1,4 @@
+use crate::LEADING_WHITESPACE;
 use std::str;
 use tree_sitter::Node;
 
@@ -7,6 +8,22 @@ pub fn str_from_bytes(bytes_slice: &[u8]) -> &str {
 
 pub fn str_from_node<'a>(n: Node<'a>, source_code: &'a [u8]) -> &'a str {
     str_from_bytes(&source_code[n.byte_range()])
+}
+
+pub fn join_lines(lines: Vec<String>) -> String {
+    lines
+        .iter()
+        .map(|s| format!("{LEADING_WHITESPACE}{s}"))
+        .collect::<Vec<String>>()
+        .join("\n")
+}
+pub fn join_lines_ref(lines: Vec<&str>) -> String {
+    join_lines(
+        lines
+            .into_iter()
+            .map(|ref_str| String::from(ref_str))
+            .collect(),
+    )
 }
 
 pub fn camel_to_snake(camel_case: &str) -> String {
