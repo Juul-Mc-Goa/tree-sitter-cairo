@@ -65,10 +65,8 @@ impl<'a> CairoSpecParser<'a> {
         result
     }
 
-    /// `f: F` is a function with arguments `method_node, args_node, cursor, source_code`.
-    /// This function takes a tree of method calls, and call `f` for each one of them.
-    /// `g: G` is a function called at the leaf of the tree, taking all produced `String`s
-    /// and returning a single one.
+    /// Takes a tree of the form `call_expression -> function -> field -> call_expression -> function -> ...`
+    /// and outputs a vector of tuples of nodes `(function, arguments)`.
     fn iterate_method_calls(&mut self, n: Node<'a>) -> (Node<'a>, Vec<(Node<'a>, Node<'a>)>) {
         self.cursor.reset(n);
         let mut has_children = true;
