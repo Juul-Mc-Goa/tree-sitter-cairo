@@ -15,7 +15,7 @@ tree-sitter generate
 
 ## Overview of the project's logic
 
-1. The whole AST for Cairo is defined [here](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-syntax-codegen/src/cairo_spec.rs).
+1. The whole syntax for Cairo is defined [here](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-syntax-codegen/src/cairo_spec.rs).
 
 2. There is also a lexer [there](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/lexer.rs),
 3. And more files [related to operators precedence](https://github.com/starkware-libs/cairo/blob/main/crates/cairo-lang-parser/src/operators.rs
