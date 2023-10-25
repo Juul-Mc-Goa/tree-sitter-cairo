@@ -55,11 +55,10 @@ impl<'a> LexerFileParser<'a> {
         std::str::from_utf8(&self.source_code[n.byte_range()]).unwrap()
     }
 
-    fn token_to_str_push_value(mut self, key: String, to_push: String) -> Self {
+    fn token_to_str_push_value(&mut self, key: String, to_push: String) {
         let mut value = self.token_to_str.get("").unwrap().clone();
         value.push_str(&to_push);
         let _ = self.token_to_str.insert(key, value);
-        self
     }
 
     /// iterate over arguments of a call expression
@@ -78,7 +77,7 @@ impl<'a> LexerFileParser<'a> {
     }
 
     /// this one is copy-pasted from rust's grammar.js
-    pub fn take_token_literal_number(self) -> Self {
+    pub fn take_token_literal_number(&mut self) {
         let to_push = join_lines_ref(vec![
             "",
             "terminal_literal_number: $ => token(seq(",
@@ -92,11 +91,11 @@ impl<'a> LexerFileParser<'a> {
             ")),",
             "",
         ]);
-        self.token_to_str_push_value("".into(), to_push.into())
+        self.token_to_str_push_value("".into(), to_push.into());
     }
 
     /// hand-made premium tree-sitter rule
-    pub fn take_token_string(self) -> Self {
+    pub fn take_token_string(&mut self) {
         let to_push = join_lines_ref(vec![
             "",
             "terminal_string: $ => seq(",
@@ -107,11 +106,11 @@ impl<'a> LexerFileParser<'a> {
             "),",
             "",
         ]);
-        self.token_to_str_push_value("".into(), to_push.into())
+        self.token_to_str_push_value("".into(), to_push.into());
     }
 
     /// hand-made premium tree-sitter rule
-    pub fn take_token_short_string(self) -> Self {
+    pub fn take_token_short_string(&mut self) {
         let to_push = join_lines_ref(vec![
             "",
             "terminal_short_string: $ => seq(",
@@ -122,10 +121,10 @@ impl<'a> LexerFileParser<'a> {
             "),",
             "",
         ]);
-        self.token_to_str_push_value("".into(), to_push.into())
+        self.token_to_str_push_value("".into(), to_push.into());
     }
 
-    pub fn pick_kind(mut self, pattern: Node, args: Node<'a>) -> Self {
+    pub fn pick_kind(&mut self, pattern: Node, args: Node<'a>) {
         let base_pattern = self.str_from_node(pattern).trim_matches('\'');
         let args_vec: Vec<String> = self.iterate_arguments(args);
 
@@ -139,25 +138,23 @@ impl<'a> LexerFileParser<'a> {
         let _ = self
             .token_to_str
             .insert(big_kind.into(), format!("'{big_pattern}'"));
-        self
     }
 
     /// takes `pattern => self.take_token_of_kind(KIND)`, updates `self.token_to_str` such that
     /// `self.token_to_str.get(KIND) == pattern`
-    pub fn take_token_of_kind(mut self, pattern: Node, args: Node<'a>) -> Self {
+    pub fn take_token_of_kind(&mut self, pattern: Node, args: Node<'a>) {
         let value = self.str_from_node(pattern); // keep surrounding quotes
         let key = &self.iterate_arguments(args)[0];
         let _ = self.token_to_str.insert(key.into(), value.into());
-        self
     }
 
-    pub fn take_token_identifier(self) -> Self {
+    pub fn take_token_identifier(&mut self) {
         let to_push =
             format!("\n{LEADING_WHITESPACE}terminal_identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,\n");
-        self.token_to_str_push_value("".into(), to_push.into())
+        self.token_to_str_push_value("".into(), to_push.into());
     }
 
-    pub fn parse_token_kind_to_syntax_kind(mut self, root_node: Node) -> Self {
+    pub fn parse_token_kind_to_syntax_kind(&mut self, root_node: Node) {
         // captures all `match` arms of the function `token_kind_to_terminal_syntax_kind`
         let query_token_to_syntax = "
         (function_item
@@ -166,16 +163,17 @@ impl<'a> LexerFileParser<'a> {
                     (expression_statement
                       (match_expression
                           body: (match_block
-                                    (match_arm pattern: (match_pattern) @token_kind
-                                               value: (scoped_identifier) @syntax_kind)))))
+                                  (match_arm
+                                      pattern: (match_pattern) @token_kind
+                                      value: (scoped_identifier) @syntax_kind)))))
         (#eq? @fn_name \"token_kind_to_terminal_syntax_kind\"))";
 
-        let query2 = Query::new(self.language_var, query_token_to_syntax).unwrap();
-        let mut query_cursor2 = QueryCursor::new();
-        let query2_matches = query_cursor2.matches(&query2, root_node, self.source_code);
+        let query = Query::new(self.language_var, query_token_to_syntax).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        let query_matches = query_cursor.matches(&query, root_node, self.source_code);
 
         // parse `token_kind_to_terminal_syntax_kind`
-        for m in query2_matches {
+        for m in query_matches {
             let (_, token_kind, syntax_kind) =
                 (m.captures[0].node, m.captures[1].node, m.captures[2].node);
             let better_node = syntax_kind.child_by_field_name("name").unwrap();
@@ -183,10 +181,9 @@ impl<'a> LexerFileParser<'a> {
             let value_to_insert: String = self.str_from_node(token_kind).into();
             self.kind_to_token.insert(key_to_insert, value_to_insert);
         }
-        self
     }
 
-    pub fn parse_take_token_identifier(mut self, root_node: Node) -> Self {
+    pub fn parse_take_token_identifier(&mut self, root_node: Node) {
         // captures all `match` arms of the function `take_token_identifier`
         let query_token_identifier = "
         (function_item
@@ -199,12 +196,12 @@ impl<'a> LexerFileParser<'a> {
                                                value: (scoped_identifier) @ident_value)))))
         (#eq? @fn_name \"take_token_identifier\"))";
 
-        let query0 = Query::new(self.language_var, query_token_identifier).unwrap();
-        let mut query_cursor0 = QueryCursor::new();
-        let query0_matches = query_cursor0.matches(&query0, root_node, self.source_code);
+        let query = Query::new(self.language_var, query_token_identifier).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        let query_matches = query_cursor.matches(&query, root_node, self.source_code);
 
         // parse `take_token_identifier`
-        for m in query0_matches {
+        for m in query_matches {
             let (_, str_pattern, ident_value) =
                 (m.captures[0].node, m.captures[1].node, m.captures[2].node);
             let key_to_insert: String = self.str_from_node(ident_value).into();
@@ -217,10 +214,9 @@ impl<'a> LexerFileParser<'a> {
             }
             let _ = self.token_to_str.insert(key_to_insert, value_to_insert);
         }
-        self
     }
 
-    pub fn match_terminal_call_expr(self, pattern: Node, function: Node, args: Node<'a>) -> Self {
+    pub fn match_terminal_call_expr(&mut self, pattern: Node, function: Node, args: Node<'a>) {
         match self.str_from_node(function) {
             "take_token_literal_number" => self.take_token_literal_number(),
             "take_token_short_string" => self.take_token_short_string(),
@@ -228,11 +224,11 @@ impl<'a> LexerFileParser<'a> {
             "pick_kind" => self.pick_kind(pattern, args),
             "take_token_of_kind" => self.take_token_of_kind(pattern, args),
             "take_token_identifier" => self.take_token_identifier(),
-            &_ => self,
+            &_ => (),
         }
     }
 
-    pub fn match_terminal_block(mut self, pattern: Node, block: Node<'a>) -> Self {
+    pub fn match_terminal_block(&mut self, pattern: Node, block: Node<'a>) {
         let base_pattern = self.str_from_node(pattern).trim_matches('\'');
         let pattern_argument_query = "
         (match_expression
@@ -267,10 +263,9 @@ impl<'a> LexerFileParser<'a> {
             let key: String = self.str_from_node(token_kind).into();
             let _ = self.token_to_str.insert(key, value);
         }
-        self
     }
 
-    pub fn parse_match_terminal(self, root_node: Node<'a>) -> Self {
+    pub fn parse_match_terminal(&mut self, root_node: Node<'a>) {
         // captures all `match` arms of the function `match_terminal`
         let query_match_terminal = "
         (function_item
@@ -289,7 +284,6 @@ impl<'a> LexerFileParser<'a> {
         let mut query_cursor1 = QueryCursor::new();
         let query1_matches = query_cursor1.matches(&query1, root_node, self.source_code);
 
-        let mut new_self: LexerFileParser<'a> = self;
         // parse `match_terminal`
         for m in query1_matches {
             let (_fn_name, token_match_arm) = (m.captures[0].node, m.captures[1].node);
@@ -303,15 +297,14 @@ impl<'a> LexerFileParser<'a> {
                         .child_by_field_name("field")
                         .unwrap();
                     let args = value.child_by_field_name("arguments").unwrap();
-                    new_self = new_self.match_terminal_call_expr(pattern, function, args);
+                    self.match_terminal_call_expr(pattern, function, args);
                 }
                 "block" => {
-                    new_self = new_self.match_terminal_block(pattern, value);
+                    self.match_terminal_block(pattern, value);
                 }
                 &_ => (),
             };
         }
-        new_self
     }
 }
 
@@ -332,9 +325,9 @@ pub fn parse_lexer(file: &str) -> (HashMap<String, String>, HashMap<String, Stri
 
     let mut lexer_file_parser = LexerFileParser::new(cursor, source_code_bytes, language_var);
 
-    lexer_file_parser = lexer_file_parser.parse_take_token_identifier(root_node);
-    lexer_file_parser = lexer_file_parser.parse_match_terminal(root_node);
-    lexer_file_parser = lexer_file_parser.parse_token_kind_to_syntax_kind(root_node);
+    lexer_file_parser.parse_take_token_identifier(root_node);
+    lexer_file_parser.parse_match_terminal(root_node);
+    lexer_file_parser.parse_token_kind_to_syntax_kind(root_node);
 
     // return the two hashmaps
     (
