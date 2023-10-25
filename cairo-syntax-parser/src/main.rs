@@ -2,12 +2,15 @@ use std::{collections::HashSet, str};
 
 mod cairo_spec_parser;
 mod lexer_file_parser;
+mod operators_parser;
 mod parser_utils;
 
 /// path to `cairo_spec.rs`
 const AST_CODEGEN_FILE: &str = "src/cairo/crates/cairo-lang-syntax-codegen/src/cairo_spec.rs";
 /// path to `lexer_file.rs`
 const LEXER_FILE: &str = "src/cairo/crates/cairo-lang-parser/src/lexer.rs";
+/// path to `operators.rs`
+const OPERATORS_FILE: &str = "src/cairo/crates/cairo-lang-parser/src/operators.rs";
 
 /// Contains the Cairo tokens that should be ignored.
 const TO_DELETE: &[&str] = &["TokenSkipped", "TerminalEndOfFile"];
@@ -29,6 +32,7 @@ pub const LEADING_WHITESPACE: &str = "        ";
 /// The idea is then to produce a map `SyntaxKind -> String`, and use it to replace the
 /// appropriate nodes in `AST_CODEGEN_FILE`; in order to obtain a working `grammar.js`.
 fn main() {
+    let operator_precedence = operators_parser::parse_operators(OPERATORS_FILE);
     let hashmaps = lexer_file_parser::parse_lexer(LEXER_FILE);
     let mut to_delete: HashSet<String> = HashSet::new();
     for token in TO_DELETE {
