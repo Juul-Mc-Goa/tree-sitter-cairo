@@ -128,11 +128,92 @@ impl<'a> CairoSpecParser<'a> {
             .insert(option_name, format!("optional({option_str})"));
     }
 
+    fn preprocess_add_option(&mut self, n: Node<'a>) {
+        let query_add_option = "
+        (call_expression
+            :function (field_expression
+                :field (field_identifier) @method_name
+                :arguments (arguments) @node_args)
+            (#eq? method_name \"add_option\"))";
+        let query = Query::new(language_var, query_add_option).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        for m in query_cursor.matches(&query, n, self.source_code) {
+            let node_args = m.captures[1].node;
+            let option_to_add = &self.clone().iterate_arguments(node_args)[0];
+            self.add_option_to_hashmap(String::from(option_to_add));
+        }
+    }
+
+    fn preprocess_empty_struct(&mut self, n: Node<'a>) {
+        let query_empty_struct = "
+        (call_expression
+            :function (field_expression :field (field_identifier) @method_name)
+            :arguments (call_expression
+                :function (scoped_identifier)
+                :arguments (arguments) @args)
+            (#eq? method_name \"add_struct\"))";
+        let query = Query::new(language_var, query_empty_struct).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        for m in query_cursor.matches(&query, n, self.source_code) {
+            let captures = m.captures;
+            let (_method_name, args) = (captures[0].node, captures[1].node);
+            let struct_str = self.iterate_arguments(args)[0];
+            self.to_delete.insert(struct_str.into());
+        }
+    }
+
+    fn preprocess_add_expr_binary(&mut self, n: Node<'a>) {
+        let query_expr_binary = "
+        (call_expression
+            :function (field_expression :field (field_identifier) @method_name)
+            :arguments (call_expression
+                :function (field_expression :value (call_expression
+                    :function (field_expression :value (call_expression
+                        :function (field_expression :value (call_expression
+                            :function (scoped_identifier)
+                            :arguments (arguments (string_literal) @struct_name)
+                            (#eq? @struct_name.1 \"ExprBinary\")))
+                        :arguments (arguments) @lhs))
+                    :arguments (arguments) @op))
+                :arguments (arguments) @rhs))
+            (#eq? method_name \"add_struct\"))";
+        let query = Query::new(language_var, query_expr_binary).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        for m in query_cursor.matches(&query, n, self.source_code) {
+            let (lhs, op, rhs) = {
+                let c = m.captures;
+                (c[2].node, c[3].node, c[4].node)
+            };
+        }
+    }
+    fn preprocess_add_expr_unary(&mut self, n: Node<'a>) {
+        let query_expr_unary = "
+        (call_expression
+            :function (field_expression :field (field_identifier) @method_name)
+            :arguments (call_expression
+                :function (field_expression :value (call_expression
+                    :function (field_expression :value (call_expression
+                        :function (scoped_identifier)
+                        :arguments (arguments (string_literal) @struct_name)
+                        (#eq? @struct_name.1 \"ExprUnary\")))
+                    :arguments (arguments) @op))
+                :arguments (arguments) @expr))
+            (#eq? method_name \"add_struct\"))";
+        let query = Query::new(language_var, query_expr_unary).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        let mut query_matches = query_cursor.matches(&query, n, self.source_code);
+    }
+
     /// It is needed to preprocess the file in order to handle `add_option` calls and
     /// empty `add_struct` calls (like `add_struct(StructBuilder::new("ImplItemMissing"))`)
     fn preprocess_file(&mut self, n: Node<'a>) {
         self.cursor.reset(n);
         let mut has_children = true;
+        let query = Query::new(language_var, query_root_node).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        let mut query_matches = query_cursor.matches(&query, root_node, self.source_code);
+
+        let captures = query_matches.next().unwrap().captures;
         while has_children {
             let node = self.cursor.node();
             let node_args = node.child_by_field_name("arguments").unwrap();

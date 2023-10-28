@@ -22,6 +22,15 @@ const ROOT_NODE: &str = "SyntaxFile";
 /// Stores how many spaces are inserted at the beginning of each line.
 pub const LEADING_WHITESPACE: &str = "        ";
 
+/// which SyntaxKind to put binary operators precedence values in
+const BINARY_EXPR_NODE: &str = "ExprBinary";
+/// which SyntaxKind to put unary operators precedence values in
+const UNARY_EXPR_NODE: &str = "ExprUnary";
+
+/// which node to inline
+const BINARY_OPS_NODE: &str = "BinaryOperator";
+const UNARY_OPS_NODE: &str = "UnaryOperator";
+
 /// The whole syntax tree is in `AST_CODEGEN_FILE`, one only needs to map some `SyntaxKind`
 /// to their actual `char` representation (ie `SyntaxKind::TerminalLBrack => '['`).
 /// For that there are, in `LEXER_FILE`:
