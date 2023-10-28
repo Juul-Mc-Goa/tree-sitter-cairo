@@ -41,13 +41,14 @@ const UNARY_OPS_NODE: &str = "UnaryOperator";
 /// The idea is then to produce a map `SyntaxKind -> String`, and use it to replace the
 /// appropriate nodes in `AST_CODEGEN_FILE`; in order to obtain a working `grammar.js`.
 fn main() {
-    let operator_precedence = operators_parser::parse_operators(OPERATORS_FILE);
+    let precedences = operators_parser::parse_operators(OPERATORS_FILE);
     let hashmaps = lexer_file_parser::parse_lexer(LEXER_FILE);
     let mut to_delete: HashSet<String> = HashSet::new();
     for token in TO_DELETE {
         to_delete.insert(String::from(*token));
     }
-    let part_grammar = cairo_spec_parser::parse_cairo_spec(AST_CODEGEN_FILE, hashmaps, to_delete);
+    let part_grammar =
+        cairo_spec_parser::parse_cairo_spec(AST_CODEGEN_FILE, hashmaps, precedences, to_delete);
     println!(
         "module.exports = grammar({{
     name: 'cairo',
