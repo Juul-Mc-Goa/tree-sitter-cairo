@@ -129,50 +129,64 @@ module.exports = grammar({
             ')',
         ),
         
-        expr_unary: $ => seq(
-            field('op', $.unary_operator),
-            field('expr', $.expr),
+        expr_unary: => choice(
+            prec.left(2, choice(
+                seq('@', field(expr, $.expr)),
+                seq('!', field(expr, $.expr)),
+                seq('~', field(expr, $.expr)),
+                seq('*', field(expr, $.expr)),
+                seq('-', field(expr, $.expr)),
+            )),
         ),
         
-        unary_operator: $ => choice(
-            '!',
-            '~',
-            '-',
-            '@',
-            '*',
-        ),
-        
-        expr_binary: $ => seq(
-            field('lhs', $.expr),
-            field('op', $.binary_operator),
-            field('rhs', $.expr),
-        ),
-        
-        binary_operator: $ => choice(
-            '.',
-            '!',
-            '*',
-            '*=',
-            '/',
-            '/=',
-            '%',
-            '%=',
-            '+',
-            '+=',
-            '-',
-            '-=',
-            '==',
-            '!=',
-            '=',
-            '&',
-            '&&',
-            '|',
-            '||',
-            '^',
-            '<=',
-            '>=',
-            '<',
-            '>',
+        expr_binary: => choice(
+            prec.left(7, choice(
+                seq(field(lhs, $.expr), '==', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '!=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '<', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '>', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '<=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '>=', field(rhs, $.expr)),
+            )),
+            prec.left(5, choice(
+                seq(field(lhs, $.expr), '^', field(rhs, $.expr)),
+            )),
+            prec.left(6, choice(
+                seq(field(lhs, $.expr), '|', field(rhs, $.expr)),
+            )),
+            prec.left(9, choice(
+                seq(field(lhs, $.expr), '||', field(rhs, $.expr)),
+            )),
+            prec.left(10, choice(
+                seq(field(lhs, $.expr), '=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '+=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '-=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '*=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '/=', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '%=', field(rhs, $.expr)),
+            )),
+            prec.left(1, choice(
+                seq(field(lhs, $.expr), '?', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '[', field(rhs, $.expr)),
+            )),
+            prec.left(2, choice(
+                seq(field(lhs, $.expr), '*', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '/', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '%', field(rhs, $.expr)),
+            )),
+            prec.left(3, choice(
+                seq(field(lhs, $.expr), '+', field(rhs, $.expr)),
+                seq(field(lhs, $.expr), '-', field(rhs, $.expr)),
+            )),
+            prec.left(0, choice(
+                seq(field(lhs, $.expr), '.', field(rhs, $.expr)),
+            )),
+            prec.left(4, choice(
+                seq(field(lhs, $.expr), '&', field(rhs, $.expr)),
+            )),
+            prec.left(8, choice(
+                seq(field(lhs, $.expr), '&&', field(rhs, $.expr)),
+            )),
         ),
         
         expr_list_parenthesized: $ => seq(

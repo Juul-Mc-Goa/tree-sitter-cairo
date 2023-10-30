@@ -1,5 +1,5 @@
 use crate::parser_utils::*;
-use crate::{LEADING_WHITESPACE, ROOT_NODE};
+use crate::{BINARY_EXPR_NODE, LEADING_WHITESPACE, ROOT_NODE, UNARY_EXPR_NODE};
 use std::{
     collections::{HashMap, HashSet},
     fs, str,
@@ -73,6 +73,10 @@ impl<'a> CairoSpecParser<'a> {
         }
     }
 
+    fn kind_to_str(&self, kind: String) -> String {
+        self.kind_to_str_or(kind.clone(), kind)
+    }
+
     /// helper function to get the code represented by a given Node
     fn str_from_node(&self, n: Node<'a>) -> &'a str {
         std::str::from_utf8(&self.source_code[n.byte_range()]).unwrap()
@@ -81,8 +85,9 @@ impl<'a> CairoSpecParser<'a> {
     /// iterate over arguments of a call expression
     fn iterate_arguments(&mut self, call_node: Node<'a>) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
-        for child in call_node.children(&mut self.cursor) {
-            match str_from_node(child, self.source_code) {
+        let mut cursor_clone = self.cursor.clone();
+        for child in call_node.children(&mut cursor_clone) {
+            match self.str_from_node(child) {
                 "," => (),
                 "(" => (),
                 ")" => (),
@@ -169,48 +174,108 @@ impl<'a> CairoSpecParser<'a> {
         }
     }
 
-    fn preprocess_add_expr_binary(&mut self, n: Node<'a>) {
+    fn process_add_expr_binary(&mut self, n: Node<'a>) -> String {
         let query_expr_binary = "
         (call_expression
-            function: (field_expression field: (field_identifier) @method_name)
-            arguments: (arguments (call_expression
+            function: (field_expression value: (call_expression
                 function: (field_expression value: (call_expression
                     function: (field_expression value: (call_expression
-                        function: (field_expression value: (call_expression
-                            function: (scoped_identifier)
-                            arguments: (arguments (string_literal) @struct_name)
-                            (#eq? @struct_name \"\\\"ExprBinary\\\"\")))
-                        arguments: (arguments) @lhs))
-                    arguments: (arguments) @op))
-                arguments: (arguments) @rhs))
-            (#eq? @method_name \"add_struct\"))";
+                        function: (scoped_identifier)
+                        arguments: (arguments (string_literal) @struct_name)
+                        (#eq? @struct_name \"\\\"ExprBinary\\\"\")))
+                    arguments: (arguments) @lhs))
+                arguments: (arguments) @op))
+            arguments: (arguments) @rhs)";
         let query = Query::new(self.language_var, query_expr_binary).unwrap();
         let mut query_cursor = QueryCursor::new();
         let m = query_cursor
             .matches(&query, n, self.source_code)
             .next()
             .unwrap();
-        let (lhs, op, rhs) = {
+        let (lhs, _, rhs) = {
             let c = m.captures;
-            (c[2].node, c[3].node, c[4].node)
+            (c[1].node, c[2].node, c[3].node)
         };
+        let (lhs_field, lhs_kind) = {
+            let args = self.iterate_arguments(lhs);
+            (args[0].clone(), args[1].clone())
+        };
+        let (rhs_field, rhs_kind) = {
+            let args = self.iterate_arguments(rhs);
+            (args[0].clone(), args[1].clone())
+        };
+        let mut expr_binary: Vec<String> = Vec::new();
+        expr_binary.push(format!("expr_binary: => choice("));
+        for prec in self.post_precedence.keys() {
+            let terminal_ops = self.post_precedence.get(prec).unwrap();
+            expr_binary.push(format!("    prec.left({prec}, choice("));
+            expr_binary.append(
+                &mut terminal_ops
+                    .into_iter()
+                    .map(|t_op| {
+                        self.kind_to_str(t_op.split("::").collect::<Vec<&str>>()[1].to_string())
+                    })
+                    .map(|s| {
+                        format!(
+                            "        seq(field({lhs_field}, $.{}), {s}, field({rhs_field}, $.{})),",
+                            camel_to_snake(&lhs_kind),
+                            camel_to_snake(&rhs_kind),
+                        )
+                    })
+                    .collect::<Vec<String>>(),
+            );
+            expr_binary.push("    )),".to_string());
+        }
+        expr_binary.push("),".to_string());
+        expr_binary.push("".to_string());
+        join_lines(expr_binary)
     }
-    fn preprocess_add_expr_unary(&mut self, n: Node<'a>) {
+
+    fn process_add_expr_unary(&mut self, n: Node<'a>) -> String {
         let query_expr_unary = "
         (call_expression
-            function: (field_expression field: (field_identifier) @method_name)
-            arguments: (arguments (call_expression
+            function: (field_expression value: (call_expression
                 function: (field_expression value: (call_expression
-                    function: (field_expression value: (call_expression
-                        function: (scoped_identifier)
-                        arguments: (arguments (string_literal) @struct_name)
-                        (#eq? @struct_name \"\\\"ExprUnary\\\"\")))
-                    arguments: (arguments) @op))
-                arguments: (arguments) @expr))
-            (#eq? @method_name \"add_struct\"))";
+                    function: (scoped_identifier)
+                    arguments: (arguments (string_literal) @struct_name)
+                    (#eq? @struct_name \"\\\"ExprUnary\\\"\")))
+                arguments: (arguments) @op))
+            arguments: (arguments) @expr)";
         let query = Query::new(self.language_var, query_expr_unary).unwrap();
         let mut query_cursor = QueryCursor::new();
-        let mut query_matches = query_cursor.matches(&query, n, self.source_code);
+        let m = query_cursor
+            .matches(&query, n, self.source_code)
+            .next()
+            .unwrap();
+        let rhs = m.captures[2].node;
+        let (rhs_field, rhs_kind) = {
+            let args = self.iterate_arguments(rhs);
+            (args[0].clone(), args[1].clone())
+        };
+        let mut expr_unary: Vec<String> = Vec::new();
+        expr_unary.push(format!("expr_unary: => choice("));
+        for prec in self.unary_precedence.keys() {
+            let terminal_ops = self.unary_precedence.get(prec).unwrap();
+            expr_unary.push(format!("    prec.left({prec}, choice("));
+            expr_unary.append(
+                &mut terminal_ops
+                    .into_iter()
+                    .map(|t_op| {
+                        self.kind_to_str(t_op.split("::").collect::<Vec<&str>>()[1].to_string())
+                    })
+                    .map(|s| {
+                        format!(
+                            "        seq({s}, field({rhs_field}, $.{})),",
+                            camel_to_snake(&rhs_kind),
+                        )
+                    })
+                    .collect::<Vec<String>>(),
+            );
+            expr_unary.push("    )),".to_string());
+        }
+        expr_unary.push("),".to_string());
+        expr_unary.push("".to_string());
+        join_lines(expr_unary)
     }
 
     /// It is needed to preprocess the file in order to handle `add_option` calls and
@@ -218,8 +283,6 @@ impl<'a> CairoSpecParser<'a> {
     fn preprocess_file(&mut self, n: Node<'a>) {
         self.preprocess_add_option(n.clone());
         self.preprocess_empty_struct(n.clone());
-        self.preprocess_add_expr_unary(n.clone());
-        self.preprocess_add_expr_binary(n);
     }
 
     /// create a tree-sitter `seq(...)` from an `add_struct` method call
@@ -227,42 +290,44 @@ impl<'a> CairoSpecParser<'a> {
         let mut self_clone = self.clone();
         let args_node = _get_args_node(n).child(1).unwrap();
         let (inner_node, methods_args) = self.iterate_method_calls(args_node);
-        let result: Vec<String> = methods_args
-            .into_iter()
-            .map(|(_method, arg)| -> String {
-                let args_vec: Vec<String> = self_clone.iterate_arguments(arg);
-                let field_name = camel_to_snake(&args_vec[0]);
-                let field_value = camel_to_snake(&args_vec[1]);
-                self_clone.kind_to_str_or(
-                    format!("field('{field_name}', $.{field_value})"),
-                    args_vec[1].clone(),
-                )
-            })
-            .collect::<Vec<String>>();
-
-        if result.len() == 0 {
+        let inner_args = self_clone.iterate_arguments(inner_node);
+        if inner_args.is_empty()
+            || methods_args.is_empty()
+            || self.to_delete.contains(&inner_args[0])
+        {
             String::new()
         } else {
-            let inner_args = self_clone.iterate_arguments(inner_node);
-            let struct_name = if inner_args.len() == 0 {
-                String::from("")
-            } else {
-                camel_to_snake(&inner_args[0])
-            };
-            let mut end_result = result
+            let mut result: Vec<String> = methods_args
                 .into_iter()
+                .map(|(_method, arg)| -> String {
+                    let args_vec: Vec<String> = self_clone.iterate_arguments(arg);
+                    let field_name = camel_to_snake(&args_vec[0]);
+                    let field_value = camel_to_snake(&args_vec[1]);
+                    self_clone.kind_to_str_or(
+                        format!("field('{field_name}', $.{field_value})"),
+                        args_vec[1].clone(),
+                    )
+                })
                 .filter(|s| !s.is_empty())
                 .map(|s| format!("    {s},"))
                 .collect::<Vec<String>>();
-            end_result.push(String::from("),"));
-            end_result.push(String::new());
-            if &inner_args[0] == ROOT_NODE {
-                end_result.insert(0, String::from("source_code: $ => seq("));
-                self.source_code_rule = join_lines(end_result);
-                String::new()
-            } else {
-                end_result.insert(0, format!("{struct_name}: $ => seq("));
-                join_lines(end_result)
+            result.push(String::from("),"));
+            result.push(String::new());
+            match inner_args[0].as_str() {
+                BINARY_EXPR_NODE => self.process_add_expr_binary(args_node),
+                UNARY_EXPR_NODE => self.process_add_expr_unary(args_node),
+                ROOT_NODE => {
+                    result.insert(0, String::from("source_code: $ => seq("));
+                    self.source_code_rule = join_lines(result);
+                    String::new()
+                }
+                &_ => {
+                    result.insert(
+                        0,
+                        format!("{}: $ => seq(", camel_to_snake(inner_args[0].as_str())),
+                    );
+                    join_lines(result)
+                }
             }
         }
     }
@@ -273,32 +338,38 @@ impl<'a> CairoSpecParser<'a> {
         let args_node = _get_args_node(n).child(1).unwrap();
         let (inner_node, methods_args) = self.iterate_method_calls(args_node);
         let enum_camel_case = self_clone.iterate_arguments(inner_node)[0].clone();
-        let enum_name = camel_to_snake(&enum_camel_case);
-        let result: Vec<String> = methods_args
-            .into_iter()
-            .map(|(method, arg)| -> String {
-                let method_name = method.child_by_field_name("field").unwrap();
-                let args: Vec<String> = self_clone.iterate_arguments(arg);
-                match str_from_node(method_name, self_clone.source_code) {
-                    "node" | "missing" => self_clone.kind_to_str_or(
-                        format!("$.{enum_name}_{}", camel_to_snake(&args[0])),
-                        enum_camel_case.clone() + &args[0],
-                    ),
-                    "node_with_explicit_kind" => self_clone
-                        .kind_to_str_or(format!("$.{}", camel_to_snake(&args[1])), args[1].clone()),
-                    &_ => String::from(""),
-                }
-            })
-            .collect::<Vec<String>>();
-        let mut end_result = result
-            .into_iter()
-            .filter(|s| !s.is_empty())
-            .map(|s| format!("    {s},"))
-            .collect::<Vec<String>>();
-        end_result.insert(0, format!("{enum_name}: $ => choice("));
-        end_result.push(String::from("),"));
-        end_result.push(String::new());
-        join_lines(end_result)
+        if self.to_delete.contains(&enum_camel_case) {
+            String::new()
+        } else {
+            let enum_name = camel_to_snake(&enum_camel_case);
+            let result: Vec<String> = methods_args
+                .into_iter()
+                .map(|(method, arg)| -> String {
+                    let method_name = method.child_by_field_name("field").unwrap();
+                    let args: Vec<String> = self_clone.iterate_arguments(arg);
+                    match self.str_from_node(method_name) {
+                        "node" | "missing" => self_clone.kind_to_str_or(
+                            format!("$.{enum_name}_{}", camel_to_snake(&args[0])),
+                            enum_camel_case.clone() + &args[0],
+                        ),
+                        "node_with_explicit_kind" => self_clone.kind_to_str_or(
+                            format!("$.{}", camel_to_snake(&args[1])),
+                            args[1].clone(),
+                        ),
+                        &_ => String::from(""),
+                    }
+                })
+                .collect::<Vec<String>>();
+            let mut end_result = result
+                .into_iter()
+                .filter(|s| !s.is_empty())
+                .map(|s| format!("    {s},"))
+                .collect::<Vec<String>>();
+            end_result.insert(0, format!("{enum_name}: $ => choice("));
+            end_result.push(String::from("),"));
+            end_result.push(String::new());
+            join_lines(end_result)
+        }
     }
 
     /// Rule for matching list of elements. `repeat1` is used to ensure the rule

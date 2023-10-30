@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fs, str};
-use tree_sitter::{Node, Parser, Query, QueryCursor, QueryMatch};
+use tree_sitter::{Node, Parser, Query, QueryCursor};
 
 #[derive(Clone)]
 struct OperatorsParser<'a> {

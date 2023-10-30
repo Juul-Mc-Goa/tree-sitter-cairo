@@ -13,7 +13,12 @@ const LEXER_FILE: &str = "src/cairo/crates/cairo-lang-parser/src/lexer.rs";
 const OPERATORS_FILE: &str = "src/cairo/crates/cairo-lang-parser/src/operators.rs";
 
 /// Contains the Cairo tokens that should be ignored.
-const TO_DELETE: &[&str] = &["TokenSkipped", "TerminalEndOfFile"];
+const TO_DELETE: &[&str] = &[
+    "TokenSkipped",
+    "TerminalEndOfFile",
+    "BinaryOperator",
+    "UnaryOperator",
+];
 
 /// An `&str` containing the root SyntaxKind of a Cairo AST. It is used to place the corresponding
 /// tree-sitter rule at the top of `grammar.js`.
@@ -26,10 +31,6 @@ pub const LEADING_WHITESPACE: &str = "        ";
 const BINARY_EXPR_NODE: &str = "ExprBinary";
 /// which SyntaxKind to put unary operators precedence values in
 const UNARY_EXPR_NODE: &str = "ExprUnary";
-
-/// which node to inline
-const BINARY_OPS_NODE: &str = "BinaryOperator";
-const UNARY_OPS_NODE: &str = "UnaryOperator";
 
 /// The whole syntax tree is in `AST_CODEGEN_FILE`, one only needs to map some `SyntaxKind`
 /// to their actual `char` representation (ie `SyntaxKind::TerminalLBrack => '['`).
