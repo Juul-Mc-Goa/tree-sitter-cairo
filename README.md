@@ -34,7 +34,9 @@ tree-sitter generate
 This module has a main handle `parse_lexer(file: &str)` which returns two hashmaps for later use.
 
 ### Parsing `operators.rs`
- This is done by: `cairo_syntax_parser/operators_parser.rs`. It produces two hashmaps `unary_precedence, post_precedence`, both of type `HashMap<u32, Vec<String>>`. Each maps one level of precedence `k` to a list of those operators who have precedence equal to `k`.
+ This is done by: `cairo_syntax_parser/operators_parser.rs`. 
+ 
+ It produces two hashmaps `unary_precedence, post_precedence`, both of type `HashMap<u32, Vec<String>>`. Each maps one level of precedence `k` to a list of those operators who have precedence equal to `k`.
 
 This module has a main handle `parse_operators(file: &str)` which returns two hashmaps for later use.
  
@@ -44,3 +46,5 @@ This module has a main handle `parse_operators(file: &str)` which returns two ha
  
  There is first a preprocessing phase to handle `add_option` method calls, and to remove structs that would match the empty string.
  Then the grammar is generated with a call to `iterate_nodes_aggregator`, which uses the hashmaps from before.
+
+This module has a main handle `parse_cairo_spec(...)` which returns a single `String` containing all the grammar rules.
