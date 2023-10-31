@@ -1,5 +1,5 @@
 use crate::parser_utils::*;
-use crate::{BINARY_EXPR_NODE, LEADING_WHITESPACE, ROOT_NODE, UNARY_EXPR_NODE};
+use crate::{ALLOW_EMPTY_LIST, BINARY_EXPR_NODE, LEADING_WHITESPACE, ROOT_NODE, UNARY_EXPR_NODE};
 use std::{
     collections::{HashMap, HashSet},
     fs, str,
@@ -14,8 +14,10 @@ struct CairoSpecParser<'a> {
     kind_to_token: HashMap<String, String>,
     token_to_str: HashMap<String, String>,
     option_to_str: HashMap<String, String>,
+    list_to_str: HashMap<String, String>,
     unary_precedence: HashMap<u32, Vec<String>>,
     post_precedence: HashMap<u32, Vec<String>>,
+    allow_empty_list: HashSet<String>,
     to_delete: HashSet<String>,
     source_code_rule: String,
 }
@@ -37,39 +39,33 @@ impl<'a> CairoSpecParser<'a> {
             kind_to_token: hashmaps.0,
             token_to_str: hashmaps.1,
             option_to_str: HashMap::<String, String>::new(),
+            list_to_str: HashMap::<String, String>::new(),
             unary_precedence: precedences.0,
             post_precedence: precedences.1,
+            allow_empty_list: HashSet::<String>::from_iter(
+                ALLOW_EMPTY_LIST.iter().map(|s_ref| s_ref.to_string()),
+            ),
             to_delete,
             source_code_rule: String::new(),
         }
     }
     /// Checks if `kind`:
-    /// i) can be mapped via `kind_to_token, token_to_str`, or
-    /// ii) can be mapped via `option_to_str`, or
-    /// iii) is replaced by an empty string if it belongs to `to_delete`.
+    /// i) should be ignored if it belongs to `to_delete`, or
+    /// ii) can be mapped via `kind_to_token` and` token_to_str`, or
+    /// iii) can be mapped via `option_to_str`, or
+    /// iv) can be mapped via `list_to_str`.
     /// Otherwise returns `default_str`.
     fn kind_to_str_or(&self, default_str: String, kind: String) -> String {
-        match self
-            .kind_to_token
-            .get(&kind)
-            .map(|token| self.token_to_str.get(token))
-            .flatten()
-        {
-            Some(string_ref) => string_ref.into(),
-            None => match self
-                .option_to_str
+        if self.to_delete.contains(&kind) {
+            String::new()
+        } else {
+            self.kind_to_token
                 .get(&kind)
-                .map(|option_str| String::from(option_str))
-            {
-                Some(other_str_ref) => other_str_ref.into(),
-                None => {
-                    if self.to_delete.contains(&kind) {
-                        String::new()
-                    } else {
-                        default_str
-                    }
-                }
-            },
+                .and_then(|token| self.token_to_str.get(token))
+                .map(|s| s.to_string())
+                .or(self.option_to_str.get(&kind).map(|s| s.to_string()))
+                .or(self.list_to_str.get(&kind).map(|s| s.to_string()))
+                .unwrap_or(default_str)
         }
     }
 
@@ -82,7 +78,55 @@ impl<'a> CairoSpecParser<'a> {
         std::str::from_utf8(&self.source_code[n.byte_range()]).unwrap()
     }
 
-    /// iterate over arguments of a call expression
+    fn format_struct_node(&self, args_vec: Vec<String>) -> String {
+        let (field, node) = (&args_vec[0], &args_vec[1]);
+        let default_str = format!(
+            "field('{}', {})",
+            camel_to_snake(field),
+            self.kind_to_str_or(format!("$.{}", camel_to_snake(node)), node.to_string()),
+        );
+        if self.to_delete.contains(node) {
+            String::new()
+        } else {
+            self.kind_to_token
+                .get(node)
+                .and_then(|s| self.token_to_str.get(s).map(|s_ref| s_ref.to_string()))
+                .or(self
+                    .option_to_str
+                    .get(node)
+                    .map(|s| format!("optional(field('{}', {s}))", camel_to_snake(field))))
+                .unwrap_or(default_str)
+                .clone()
+        }
+    }
+
+    fn format_struct_node_optional_list(&self, args_vec: Vec<String>) -> String {
+        let (field, node) = (&args_vec[0], &args_vec[1]);
+        let default_str = format!(
+            "field('{}', {})",
+            camel_to_snake(field),
+            self.kind_to_str_or(format!("$.{}", camel_to_snake(node)), node.to_string()),
+        );
+        if self.to_delete.contains(node) {
+            String::new()
+        } else {
+            self.kind_to_token
+                .get(node)
+                .and_then(|s| self.token_to_str.get(s).map(|s_ref| s_ref.to_string()))
+                .or(self
+                    .option_to_str
+                    .get(node)
+                    .map(|s| format!("optional(field('{}', {s}))", camel_to_snake(field))))
+                .or(self
+                    .list_to_str
+                    .get(node)
+                    .map(|s| format!("optional(field('{}', {s}))", camel_to_snake(field))))
+                .unwrap_or(default_str)
+                .clone()
+        }
+    }
+
+    /// Iterates over arguments of a call expression, returns a vector of String.
     fn iterate_arguments(&mut self, call_node: Node<'a>) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
         let mut cursor_clone = self.cursor.clone();
@@ -136,9 +180,7 @@ impl<'a> CairoSpecParser<'a> {
             format!("$.{}", snake_node_str),
             String::from(camel_node_str),
         );
-        let _ = self
-            .option_to_str
-            .insert(option_name, format!("optional({option_str})"));
+        let _ = self.option_to_str.insert(option_name, option_str);
     }
 
     fn preprocess_add_option(&mut self, n: Node<'a>) {
@@ -205,7 +247,7 @@ impl<'a> CairoSpecParser<'a> {
             (args[0].clone(), args[1].clone())
         };
         let mut expr_binary: Vec<String> = Vec::new();
-        expr_binary.push(format!("expr_binary: => choice("));
+        expr_binary.push(format!("expr_binary: $ => choice("));
         for prec in self.post_precedence.keys() {
             let terminal_ops = self.post_precedence.get(prec).unwrap();
             expr_binary.push(format!("    prec.left({prec}, choice("));
@@ -217,7 +259,7 @@ impl<'a> CairoSpecParser<'a> {
                     })
                     .map(|s| {
                         format!(
-                            "        seq(field({lhs_field}, $.{}), {s}, field({rhs_field}, $.{})),",
+                            "        seq(field('{lhs_field}', $.{}), {s}, field('{rhs_field}', $.{})),",
                             camel_to_snake(&lhs_kind),
                             camel_to_snake(&rhs_kind),
                         )
@@ -253,7 +295,7 @@ impl<'a> CairoSpecParser<'a> {
             (args[0].clone(), args[1].clone())
         };
         let mut expr_unary: Vec<String> = Vec::new();
-        expr_unary.push(format!("expr_unary: => choice("));
+        expr_unary.push(format!("expr_unary: $ => choice("));
         for prec in self.unary_precedence.keys() {
             let terminal_ops = self.unary_precedence.get(prec).unwrap();
             expr_unary.push(format!("    prec.left({prec}, choice("));
@@ -265,7 +307,7 @@ impl<'a> CairoSpecParser<'a> {
                     })
                     .map(|s| {
                         format!(
-                            "        seq({s}, field({rhs_field}, $.{})),",
+                            "        seq({s}, field('{rhs_field}', $.{})),",
                             camel_to_snake(&rhs_kind),
                         )
                     })
@@ -278,11 +320,46 @@ impl<'a> CairoSpecParser<'a> {
         join_lines(expr_unary)
     }
 
+    fn preprocess_add_list(&mut self, n: Node<'a>) {
+        let query_add_list = "
+        (call_expression
+            function: (field_expression field: (field_identifier) @method_name)
+            arguments: (arguments) @node_args
+            (#eq? @method_name \"add_list\"))";
+        let query = Query::new(self.language_var, query_add_list).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        for m in query_cursor.matches(&query, n, self.source_code) {
+            let args = self.iterate_arguments(m.captures[1].node);
+            let list_element = camel_to_snake(&args[1]);
+            self.list_to_str
+                .insert(args[0].clone(), format!("repeat($.{list_element})"));
+        }
+
+        let query_add_separated_list = "
+        (call_expression
+            function: (field_expression field: (field_identifier) @method_name)
+            arguments: (arguments) @node_args
+            (#eq? @method_name \"add_separated_list\"))";
+        let query = Query::new(self.language_var, query_add_separated_list).unwrap();
+        let mut query_cursor = QueryCursor::new();
+        for m in query_cursor.matches(&query, n, self.source_code) {
+            let args = self.iterate_arguments(m.captures[1].node);
+            let list_element = camel_to_snake(&args[1]);
+            let sep = &args[2];
+            let new_sep = self.kind_to_str(sep.clone());
+            self.list_to_str.insert(
+                args[0].clone(),
+                format!("seq($.{list_element}, repeat(seq({new_sep}, $.{list_element})))"),
+            );
+        }
+    }
+
     /// It is needed to preprocess the file in order to handle `add_option` calls and
     /// empty `add_struct` calls (like `add_struct(StructBuilder::new("ImplItemMissing"))`)
     fn preprocess_file(&mut self, n: Node<'a>) {
         self.preprocess_add_option(n.clone());
         self.preprocess_empty_struct(n.clone());
+        self.preprocess_add_list(n);
     }
 
     /// create a tree-sitter `seq(...)` from an `add_struct` method call
@@ -301,12 +378,11 @@ impl<'a> CairoSpecParser<'a> {
                 .into_iter()
                 .map(|(_method, arg)| -> String {
                     let args_vec: Vec<String> = self_clone.iterate_arguments(arg);
-                    let field_name = camel_to_snake(&args_vec[0]);
-                    let field_value = camel_to_snake(&args_vec[1]);
-                    self_clone.kind_to_str_or(
-                        format!("field('{field_name}', $.{field_value})"),
-                        args_vec[1].clone(),
-                    )
+                    if self.allow_empty_list.contains(inner_args[0].as_str()) {
+                        self_clone.format_struct_node_optional_list(args_vec)
+                    } else {
+                        self_clone.format_struct_node(args_vec)
+                    }
                 })
                 .filter(|s| !s.is_empty())
                 .map(|s| format!("    {s},"))
