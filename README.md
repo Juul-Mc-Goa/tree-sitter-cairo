@@ -22,6 +22,8 @@ tree-sitter generate
 ) in the same project.
 
  As Cairo is defined with some Rust code, the idea is to programmatically parse some Rust using tree-sitter, in order to output a working `grammar.js` for Cairo. 
+ 
+ This code first parses `lexer.rs` and `operators.rs`, then parses `cairo_spec.rs` and generate the grammar.
 
 ### Parsing `lexer.rs`
  
@@ -29,15 +31,16 @@ tree-sitter generate
  
  It tries its best to automatically generate JS code from the `lexer.rs` file. In some cases, some hand-made JS code is written instead.
 
-This module has a main handle `parse_lexer(file: &str)` which returns two hashmaps for later use. These hashmaps are needed when parsing `cairo_spec.rs`, in order to replace some `SyntaxKind` with their `str` equivalent: for example, `SyntaxKind::TerminalComma` becomes `','`.
+This module has a main handle `parse_lexer(file: &str)` which returns two hashmaps for later use.
 
 ### Parsing `operators.rs`
- This is done by: `cairo_syntax_parser/operators_parser.rs`. It produces two hashmaps `unary_precedence, post_precedence`, both of type `HashMap<u32, Vec<String>>`. It maps one level of precedence `k` to a list of those operators who have precedence equal to `k`.
+ This is done by: `cairo_syntax_parser/operators_parser.rs`. It produces two hashmaps `unary_precedence, post_precedence`, both of type `HashMap<u32, Vec<String>>`. Each maps one level of precedence `k` to a list of those operators who have precedence equal to `k`.
 
+This module has a main handle `parse_operators(file: &str)` which returns two hashmaps for later use.
  
 ### Parsing `cairo_spec.rs`
  
  This is done by `cairo_syntax_parser/cairo_spec_parser.rs`.
  
  There is first a preprocessing phase to handle `add_option` method calls, and to remove structs that would match the empty string.
- Then the grammar is generated with a call to `iterate_nodes_aggregator`, which uses the two hashmaps from before.
+ Then the grammar is generated with a call to `iterate_nodes_aggregator`, which uses the hashmaps from before.
